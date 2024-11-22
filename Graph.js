@@ -92,8 +92,8 @@ function handleFiles() {
     document.getElementById('progressBar').value = 0;
 
     readNextFile(encounter, inputFiles.files, 0, []).then(result => {
-        const results = new Array(encounter[3].length);
-        for (let i = 0; i < results.length; i++) {
+        const results = new Array(encounter[3].length+1);
+        for (let i = 0; i < results.length-1; i++) {
             results[i] = {
                 label: encounter[3][i],
                 data: [],
@@ -103,11 +103,22 @@ function handleFiles() {
             };
         }
 
+        results[results.length-1] = {
+            label: 'Clear',
+            data: [],
+            parsing: false,
+            borderColor: 'rgb(255, 215, 0)',
+            backgroundColor: 'rgba(255, 215, 0, 0.5)',
+            pointStyle: 'triangle',
+            pointRadius: 5
+        };
+
         let index = 0;
         let combatTime = 0;
         result.forEach(log => {
             log.forEach(pull => {
-                results[pull[2]].data.push({ x: index + 1, y: pull[1] / 60000, tooltip: pull[0] });
+                const dataSet = pull[3] ? results.length - 1 : pull[2];
+                results[dataSet].data.push({ x: index + 1, y: pull[1] / 60000, tooltip: pull[0] });
                 combatTime += pull[1];
                 ++index;
             });
@@ -116,7 +127,7 @@ function handleFiles() {
         chart.data = { datasets: results };
         chart.options.plugins.title = {
             display: true,
-            text: encounter[0] + " prog : " + index + " pulls for " + parseMillisecondsIntoReadableTime(combatTime) + " combat time"
+            text: encounter[0] + " prog: " + index + " pulls for " + parseMillisecondsIntoReadableTime(combatTime) + " combat time"
         };
         chart.update();
     }).catch(error => console.log(error));
